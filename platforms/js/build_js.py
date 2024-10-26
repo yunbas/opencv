@@ -195,7 +195,7 @@ class Builder:
             flags += self.options.build_flags + " "
         if self.options.webnn:
             flags += "-s USE_WEBNN=1 "
-        flags += "-s EXPORTED_FUNCTIONS=\"['_malloc', '_free']\""
+        flags += "-s EXPORTED_FUNCTIONS=\"['_malloc', '_free', '_drawRectanglesForFaces']\""
         return flags
 
     def config(self):

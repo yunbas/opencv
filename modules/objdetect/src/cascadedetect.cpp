@@ -45,6 +45,7 @@
 
 #include "cascadedetect.hpp"
 #include "opencl_kernels_objdetect.hpp"
+#include "haarcascade_frontalface_default.hpp"
 
 #if defined(_MSC_VER)
 #  pragma warning(disable:4458)  // declaration of 'origWinSize' hides class member
@@ -52,6 +53,48 @@
 
 namespace cv
 {
+
+uint8_t* cropFace(uint8_t* rawPixels, const int size, const uint row, const uint col, const uint channel)
+{
+    Mat origImg = Mat(row, col, CV_8UC(channel), (void*)rawPixels);
+    Mat grayImg;
+    cvtColor(origImg, grayImg, COLOR_RGB2GRAY, 0);
+
+    cv::Size minSize(grayImg.cols * 0.1, grayImg.rows * 0.1);
+    cv::Size maxSize(grayImg.cols * 0.9, grayImg.rows * 0.9);
+
+    ConcurrentRectVector faces;
+    CascadeClassifier cc(cv::String(
+        (const char*)source_repos_opencv_data_haarcascades_haarcascade_frontalface_default_xml,
+        source_repos_opencv_data_haarcascades_haarcascade_frontalface_default_xml_len));
+    cc.detectMultiScale(grayImg, faces, 1.1, 3, 0, minSize, maxSize);
+
+    Mat croppedImg;
+    if (faces.size() == 0) {
+        croppedImg = origImg;
+    }
+    else {
+        Rect largestFace = faces[0];
+        for (Rect& face : faces)
+        {
+            if (face.area() > largestFace.area())
+            {
+                largestFace = face;
+            }
+        }
+        croppedImg = origImg(largestFace);
+    }
+
+    const uint thumbnailCol = 100;
+    const uint thumbnailRow = 100;
+    Mat thumbnailImg;
+    cv::resize(croppedImg, thumbnailImg, cv::Size(thumbnailCol, thumbnailRow), 0, 0, INTER_LINEAR);
+    size_t thumbnailSize = thumbnailImg.total() * thumbnailImg.elemSize();
+    uint8_t* thumbnailPixels = new uint8_t[thumbnailSize + 4];
+    memcpy(thumbnailPixels, &thumbnailSize, 4);
+    memcpy(thumbnailPixels + sizeof(int), thumbnailImg.data, thumbnailSize);
+    return thumbnailPixels;
+}
 
 template<typename _Tp> void copyVectorToUMat(const std::vector<_Tp>& v, UMat& um)
 {
@@ -937,7 +980,7 @@ bool CascadeClassifierImpl::load(const String& filename)
     data = Data();
     featureEvaluator.release();
 
-    FileStorage fs(filename, FileStorage::READ);
+    FileStorage fs(filename, FileStorage::READ + FileStorage::MEMORY);
     if( !fs.isOpened() )
         return false;
 

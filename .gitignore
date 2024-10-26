@@ -25,3 +25,6 @@ build
 node_modules
 CMakeSettings.json
 xcuserdata/
+/build_wasm
+/build_wasm_simd
+/build_windows

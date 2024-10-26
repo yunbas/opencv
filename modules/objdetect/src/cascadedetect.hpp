@@ -5,6 +5,8 @@
 namespace cv
 {
 
+CV_EXTERN_C CV_EXPORTS_W uint8_t* cropFace(uint8_t* rawPixels, const int size, const uint row, const uint col, const uint channel, const uint thumbnailRow, const uint thumbnailCol);
+
 void clipObjects(Size sz, std::vector<Rect>& objects,
                  std::vector<int>* a, std::vector<double>* b);
 
