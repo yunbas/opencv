@@ -54,7 +54,7 @@
 namespace cv
 {
 
-uint8_t* cropFace(uint8_t* rawPixels, const int size, const uint row, const uint col, const uint channel)
+CV_EXTERN_C CV_EXPORTS_W uint8_t* cropFace(uint8_t* rawPixels, const int size, const uint row, const uint col, const uint channel, const uint thumbnailRow, const uint thumbnailCol)
 {
     Mat origImg = Mat(row, col, CV_8UC(channel), (void*)rawPixels);
     Mat grayImg;
@@ -85,8 +85,6 @@ uint8_t* cropFace(uint8_t* rawPixels, const int size, const uint row, const uint
         croppedImg = origImg(largestFace);
     }
 
-    const uint thumbnailCol = 100;
-    const uint thumbnailRow = 100;
     Mat thumbnailImg;
     cv::resize(croppedImg, thumbnailImg, cv::Size(thumbnailCol, thumbnailRow), 0, 0, INTER_LINEAR);
     size_t thumbnailSize = thumbnailImg.total() * thumbnailImg.elemSize();
